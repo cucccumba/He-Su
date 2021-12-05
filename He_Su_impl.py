@@ -206,7 +206,7 @@ class Counter(object):
             return 0
     
     def generateSecretKey(self):
-        secret_key = generateKeys(10)
+        secret_key = generateKeys(9)
         self.secret_key = secret_key
         return secret_key[0]
     
@@ -236,14 +236,14 @@ def getMaskFactor():
     return random.randint(1, 50)
 
 def vote():
-    admin_keys = generateKeys(10)
+    admin_keys = generateKeys(9)
     print("admin keys: ", admin_keys)
     admin = Admin(admin_keys[0], admin_keys[1])
     
     counter = Counter(admin_keys[0])
    
-    voter1_keys = generateKeys(10)
-    voter2_keys = generateKeys(10)
+    voter1_keys = generateKeys(9)
+    voter2_keys = generateKeys(9)
     print("voter1 keys:", voter1_keys)
     print("voter2 keys:", voter2_keys)
     mask_factor1 = getMaskFactor()
