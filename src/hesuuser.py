@@ -1,23 +1,23 @@
 from src.hesu.hesuadmin import *
 from src.hesu.hesucounter import Counter
 from src.hesu.hesuvoter import *
-from src.utils.hesugen import generateKeys, getMaskFactor
+from src.utils.hesugen import generate_keys, get_mask_factor
 
 
 def vote():
-    admin_keys = generateKeys(9)
+    admin_keys = generate_keys(9)
     print("admin keys: ", admin_keys)
     admin = Admin(admin_keys[0], admin_keys[1])
 
     counter = Counter(admin_keys[0])
 
-    voter1_keys = generateKeys(9)
-    voter2_keys = generateKeys(9)
+    voter1_keys = generate_keys(9)
+    voter2_keys = generate_keys(9)
     print("voter1 keys:", voter1_keys)
     print("voter2 keys:", voter2_keys)
-    mask_factor1 = getMaskFactor()
+    mask_factor1 = get_mask_factor()
     print("mask_factor1: ", mask_factor1)
-    mask_factor2 = getMaskFactor()
+    mask_factor2 = get_mask_factor()
     print("mask_factor2: ", mask_factor2)
     voter1 = Voter("Voter1", voter1_keys[0], voter1_keys[1], mask_factor1, admin_keys[0])
     voter2 = Voter("Voter2", voter2_keys[0], voter2_keys[1], mask_factor2, admin_keys[0])
@@ -34,9 +34,9 @@ def vote():
     print("sign2: ", sign2)
     print("Auth voters: ", admin.auth_voters)
 
-    pair1 = voter1.getSignedKey(sign1)
+    pair1 = voter1.get_signed_key(sign1)
     print("pair1: ", pair1)
-    pair2 = voter2.getSignedKey(sign2)
+    pair2 = voter2.get_signed_key(sign2)
     print("pair2: ", pair2)
 
     res1 = counter.registrate(pair1)
@@ -46,7 +46,7 @@ def vote():
 
     print("Auth keys: ", counter.auth_keys)
 
-    secret_key = counter.generateSecretKey()
+    secret_key = counter.generate_secret_key()
 
     vote1 = voter1.make_vote(2, secret_key)
     print("vote1: ", vote1)
@@ -58,7 +58,7 @@ def vote():
         print("confirm1: ", confirm1)
 
         counter.public_final_vote(confirm1)
-    if (counter.public_vote(vote2) == 1):
+    if counter.public_vote(vote2) == 1:
         confirm2 = voter2.confirm_vote()
         print("confirm2: ", confirm2)
 
