@@ -1,4 +1,4 @@
-from hesuutils import *
+from src.utils.hesuutils import *
 
 class Voter(object):
     def __init__(self, name, public_key, private_key, mask_factor, public_adm_key):
