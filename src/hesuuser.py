@@ -53,7 +53,7 @@ def vote():
     vote2 = voter2.make_vote(3, secret_key)
     print("vote2: ", vote2)
 
-    if (counter.public_vote(vote1) == 1):
+    if counter.public_vote(vote1) == 1:
         confirm1 = voter1.confirm_vote()
         print("confirm1: ", confirm1)
 
