@@ -1,6 +1,11 @@
 from src.utils.hesuutils import *
 
 
+class VoterRequest(object):
+    def __init__(self, name, vote):
+        self.name = name
+        self.vote = vote
+
 class Voter(object):
     def __init__(self, name, public_key, private_key, mask_factor, public_adm_key):
         self.name = name
@@ -21,10 +26,8 @@ class Voter(object):
         inverse = mmi(self.mask_factor, self.public_adm_key[0])
         self.signed_public_key = sign * inverse
         encrypted = mod_exp(self.signed_public_key, self.public_adm_key[1], self.public_adm_key[0])
-        if encrypted == self.hash_key:
-            print(self.name + ": Signed key is OK")
-        else:
-            raise Exception('Problem with signed key')
+        if encrypted != self.hash_key:
+            raise Exception(VOTER_KEY_FAILED_EXCEPTION)
         return self.public_key, self.signed_public_key
 
     def make_vote(self, vote, secret_key):
@@ -36,3 +39,4 @@ class Voter(object):
     def confirm_vote(self):
         sign = mod_exp(huhash(self.secret_key), self.private_key[1], self.private_key[0])
         return self.public_key, self.secret_key, sign
+
