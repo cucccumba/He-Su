@@ -1,5 +1,15 @@
 import random
+import src.test as tests
 
+NO_EXCEPTION = ''
+REGISTRATION_FAILED_EXCEPTION = 'Registration failed'
+VOTER_KEY_FAILED_EXCEPTION = 'Signed key doesn\'t match hash'
+AUTH_HASH_FAILED_EXCEPTION = 'Hash of auth key is incorrect'
+PUBLIC_VOTE_AUTH_KEY_HASH_FAILED_EXCEPTION = 'Hash of auth key is incorrect'
+PUBLIC_VOTE_AUTH_KEY_NOT_PRESENT_EXCEPTION = 'Auth keys do not contain vote public key'
+FINAL_VOTE_FAILED_EXCEPTION = 'Vote confirmation failed'
+AUTH_REGISTRATION_NON_PRESENT_EXCEPTION = 'Auth keys do not contain vote public key'
+VOTER_ALREADY_REGISTERED_EXCEPTION = 'Voter already registered'
 
 def huhash(x):
     return hash(x) % 200

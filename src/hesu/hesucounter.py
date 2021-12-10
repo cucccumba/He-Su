@@ -14,10 +14,10 @@ class Counter(object):
         encrypted = mod_exp(signed_public_key, self.public_adm_key[1], self.public_adm_key[0])
         if encrypted == huhash(pair[0]):
             self.auth_keys.append(pair[0])
-            print("Key registrated: ", pair[0])
+            #print("Key registrated: ", pair[0])
             return 1
         else:
-            return 0
+            raise Exception(REGISTRATION_FAILED_EXCEPTION)
 
     def generate_secret_key(self):
         secret_key = generate_keys(9)
@@ -26,22 +26,25 @@ class Counter(object):
 
     def public_vote(self, vote):
         if self.auth_keys.__contains__(vote[0]):
-            print("Key auth: ", vote[0])
+            #print("Key auth: ", vote[0])
             encrypted = mod_exp(vote[2], vote[0][1], vote[0][0])
             if encrypted == huhash(vote[1]):
                 self.votes.append(vote)
-                print("Initial vote ", vote)
+                #print("Initial vote ", vote)
                 return 1
-        return 0
+            raise Exception(PUBLIC_VOTE_AUTH_KEY_HASH_FAILED_EXCEPTION) #PUBLIC_VOTE_AUTH_KEY_HASH_FAILED_EXCEPTION
+        raise Exception(PUBLIC_VOTE_AUTH_KEY_NOT_PRESENT_EXCEPTION)
 
     def public_final_vote(self, confirm):
         encrypt = mod_exp(confirm[2], confirm[0][1], confirm[0][0])
         if encrypt == huhash(confirm[1]):
             vote = None
-            print("Confirm is OK")
+            #print("Confirm is OK")
             for i in self.votes:
                 if i[0] == confirm[0]:
                     vote = i
             if vote is not None:
                 encrypted_vote = mod_exp(vote[1], self.secret_key[1][1], self.secret_key[1][0])
-                print("Vote: ", (encrypted_vote, vote[1], self.secret_key[0], vote[2], confirm[2], vote[0]))
+                return encrypted_vote
+                #print("Vote: ", (encrypted_vote, vote[1], self.secret_key[0], vote[2], confirm[2], vote[0]))
+        raise Exception(FINAL_VOTE_FAILED_EXCEPTION)
