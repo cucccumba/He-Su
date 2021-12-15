@@ -105,6 +105,7 @@ class VotingController(object):
             resp.err = err
         return resp
 
+    # runs all unit tests at once
     def test_all(self):
         self.test_normal('1')
         self.test_voter_already_registered('2')
@@ -120,7 +121,10 @@ class VotingController(object):
         voter_keys = generate_keys(self.key_gen_num)
         mask_factor = get_mask_factor()
         voter = Voter(voter_name, voter_keys[0], voter_keys[1], mask_factor, self.admin_keys[0])
-        assert self.main_block(NORMAL_TEST_TYPE, voter, voter_name).err == ''
+        err = self.main_block(NORMAL_TEST_TYPE, voter, voter_name).err
+        if err != '':
+            print(err)
+        #assert self.main_block(NORMAL_TEST_TYPE, voter, voter_name).err == ''
 
     def test_voter_already_registered(self, voter_name):
         assert isinstance(voter_name, str), "Voter name should be string"
