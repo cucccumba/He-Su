@@ -168,62 +168,83 @@ class VotingController(object):
         voter = Voter(voter_name, voter_keys[0], voter_keys[1], mask_factor, self.admin_keys[0])
         assert self.main_block(FINAL_VOTE_FAILED_TEST_TYPE, voter, voter_name).err.__str__() == FINAL_VOTE_FAILED_EXCEPTION
 
-def vote():
+#input - number of voters
+#voters names = 1, 2, 3, ...
+#voter's vote = voter's name
+def vote(voters_number = 10):
+    voters = [];
+    voters_keys = [];
+    mask_factors = [];
+    
+    for i in range(voters_number):
+        voters.append(i + 1)
+        voters_keys.append(generate_keys(9))
+        mask_factors.append(get_mask_factor())
+    print("voters", voters)
+    print("voters keys:", voters_keys)
+    print("mask factors: ", mask_factors)
+    
     admin_keys = generate_keys(9) #
     print("admin keys: ", admin_keys)
     admin = Admin(admin_keys[0], admin_keys[1]) #
 
     counter = Counter(admin_keys[0])
+    
+    voters_obj = [];
+    for i in range(voters_number):
+        voters_obj.append(Voter(voters[i], voters_keys[i][0], voters_keys[i][1], mask_factors[i], admin_keys[0]))
+    
+    resp = Response
+    try:
+        auth = []
+        for i in range(voters_number):
+            auth.append(voters_obj[i].authorization())
+        
+        sign = []
+        for i in range(voters_number):
+            sign.append(admin.sign(auth[i], voters[i]))
+        resp.is_admin_sign_ok = True
+        print("Auth voters: ", admin.auth_voters)
+        
+        signed_keys = []
+        for i in range(voters_number):
+            signed_keys.append(voters_obj[i].get_signed_key(sign[i]))    
+        resp.is_voter_key_signed = True
+        print("signed_keys: ", signed_keys)
+        
+        for i in range(voters_number):
+            counter.registrate(signed_keys[i])
+        resp.is_registration_ok = True
+        print("Auth keys: ", counter.auth_keys)
 
-    voter1_keys = generate_keys(9) # Ключи избирателя (1.0)
-    voter2_keys = generate_keys(9)
-    print("voter1 keys:", voter1_keys)
-    print("voter2 keys:", voter2_keys)
-    mask_factor1 = get_mask_factor() # Маскирующий множитель (1.1)
-    print("mask_factor1: ", mask_factor1)
-    mask_factor2 = get_mask_factor() #
-    print("mask_factor2: ", mask_factor2)
-    voter1 = Voter("Voter1", voter1_keys[0], voter1_keys[1], mask_factor1, admin_keys[0])
-    voter2 = Voter("Voter2", voter2_keys[0], voter2_keys[1], mask_factor2, admin_keys[0])
+        secret_keys = []
+        for i in range(voters_number):
+            secret_keys.append(counter.generate_secret_key())
+            
+        print("secret keys: ", secret_keys)
 
-    f1 = voter1.authorization()
-    print("f1: ", f1)
-    f2 = voter2.authorization()
-    print("f2: ", f2)
+        votes = []
+        for i in range(voters_number):
+            votes.append(voters_obj[i].make_vote(i + 1, secret_keys[i]))
+            
+        print("votes: ", votes)
 
-    sign1 = admin.sign(f1, voter1.name) # Проверка приемлимости избирателя (2.2), возвращать
-    print("sign1: ", sign1)
-    sign2 = admin.sign(f2, voter2.name)
+        confirmations = []
+        for i in range(voters_number):
+            if (counter.public_vote(votes[i]) == 1):
+                confirmations.append(voters_obj[i].confirm_vote())
+            else:
+                confirmations.append(0)
+        resp.is_public_vote_ok = True
+        print("confirmations: ", confirmations)
+    
+        final_votes = []
+        for i in range(voters_number):
+            if (confirmations[i] != 0):
+                final_votes.append(counter.public_final_vote(confirmations[i], secret_keys[i]))
+        resp.is_final_vote_ok = True
+        print("final votes: ", final_votes)
+    except BaseException as err:
+            resp.err = err
 
-    print("sign2: ", sign2)
-    print("Auth voters: ", admin.auth_voters) # Список авторизованных пользователей (2.3), возвращать
-
-    pair1 = voter1.get_signed_key(sign1) # (3) - избиратель проверяет равенство
-    print("pair1: ", pair1)
-    pair2 = voter2.get_signed_key(sign2)
-    print("pair2: ", pair2)
-
-    res1 = counter.registrate(pair1) # 5
-    print("res1: ", res1)
-    res2 = counter.registrate(pair2)
-    print("res2: ", res2)
-
-    print("Auth keys: ", counter.auth_keys)
-
-    secret_key = counter.generate_secret_key()
-
-    vote1 = voter1.make_vote(2, secret_key)
-    print("vote1: ", vote1)
-    vote2 = voter2.make_vote(3, secret_key)
-    print("vote2: ", vote2)
-
-    if counter.public_vote(vote1) == 1:
-        confirm1 = voter1.confirm_vote()
-        print("confirm1: ", confirm1)
-
-        counter.public_final_vote(confirm1)
-    if counter.public_vote(vote2) == 1:
-        confirm2 = voter2.confirm_vote()
-        print("confirm2: ", confirm2)
-
-        counter.public_final_vote(confirm2)
+    return resp

@@ -6,7 +6,7 @@ class Counter(object):
     def __init__(self, public_adm_key):
         self.public_adm_key = public_adm_key
         self.auth_keys = []
-        self.secret_key = None
+        self.secret_keys = []
         self.votes = []
 
     def registrate(self, pair):
@@ -21,7 +21,7 @@ class Counter(object):
 
     def generate_secret_key(self):
         secret_key = generate_keys(9)
-        self.secret_key = secret_key
+        self.secret_keys.append(secret_key)
         return secret_key[0]
 
     def public_vote(self, vote):
@@ -36,7 +36,7 @@ class Counter(object):
             raise Exception(PUBLIC_VOTE_AUTH_KEY_HASH_FAILED_EXCEPTION) #PUBLIC_VOTE_AUTH_KEY_HASH_FAILED_EXCEPTION
         raise Exception(PUBLIC_VOTE_AUTH_KEY_NOT_PRESENT_EXCEPTION)
 
-    def public_final_vote(self, confirm):
+    def public_final_vote(self, confirm, public_secret_key):
         encrypt = mod_exp(confirm[2], confirm[0][1], confirm[0][0])
         if encrypt == huhash(confirm[1]):
             vote = None
@@ -45,7 +45,11 @@ class Counter(object):
                 if i[0] == confirm[0]:
                     vote = i
             if vote is not None:
-                encrypted_vote = mod_exp(vote[1], self.secret_key[1][1], self.secret_key[1][0])
+                secret_key = None
+                for i in self.secret_keys:
+                    if (i[0] == public_secret_key):
+                        secret_key = i[1]
+                encrypted_vote = mod_exp(vote[1], secret_key[1], secret_key[0])
                 return encrypted_vote
                 #print("Vote: ", (encrypted_vote, vote[1], self.secret_key[0], vote[2], confirm[2], vote[0]))
         raise Exception(FINAL_VOTE_FAILED_EXCEPTION)
