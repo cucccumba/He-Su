@@ -32,6 +32,7 @@ class Counter(object):
                 self.votes.append(vote)
                 #print("Initial vote ", vote)
                 return 1
+            print(f'Encrypted is {encrypted}, huhash is {huhash((vote[1]))}')
             raise Exception(PUBLIC_VOTE_AUTH_KEY_HASH_FAILED_EXCEPTION) #PUBLIC_VOTE_AUTH_KEY_HASH_FAILED_EXCEPTION
         raise Exception(PUBLIC_VOTE_AUTH_KEY_NOT_PRESENT_EXCEPTION)
 
