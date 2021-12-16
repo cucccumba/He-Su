@@ -175,7 +175,7 @@ def vote(voters_number = 10):
     voters = [];
     voters_keys = [];
     mask_factors = [];
-    
+
     for i in range(voters_number):
         voters.append(i + 1)
         voters_keys.append(generate_keys(9))
@@ -183,35 +183,35 @@ def vote(voters_number = 10):
     print("voters", voters)
     print("voters keys:", voters_keys)
     print("mask factors: ", mask_factors)
-    
+
     admin_keys = generate_keys(9) #
     print("admin keys: ", admin_keys)
     admin = Admin(admin_keys[0], admin_keys[1]) #
 
     counter = Counter(admin_keys[0])
-    
+
     voters_obj = [];
     for i in range(voters_number):
         voters_obj.append(Voter(voters[i], voters_keys[i][0], voters_keys[i][1], mask_factors[i], admin_keys[0]))
-    
+
     resp = Response
     try:
         auth = []
         for i in range(voters_number):
             auth.append(voters_obj[i].authorization())
-        
+
         sign = []
         for i in range(voters_number):
             sign.append(admin.sign(auth[i], voters[i]))
         resp.is_admin_sign_ok = True
         print("Auth voters: ", admin.auth_voters)
-        
+
         signed_keys = []
         for i in range(voters_number):
-            signed_keys.append(voters_obj[i].get_signed_key(sign[i]))    
+            signed_keys.append(voters_obj[i].get_signed_key(sign[i]))
         resp.is_voter_key_signed = True
         print("signed_keys: ", signed_keys)
-        
+
         for i in range(voters_number):
             counter.registrate(signed_keys[i])
         resp.is_registration_ok = True
@@ -220,13 +220,13 @@ def vote(voters_number = 10):
         secret_keys = []
         for i in range(voters_number):
             secret_keys.append(counter.generate_secret_key())
-            
+
         print("secret keys: ", secret_keys)
 
         votes = []
         for i in range(voters_number):
             votes.append(voters_obj[i].make_vote(i + 1, secret_keys[i]))
-            
+
         print("votes: ", votes)
 
         confirmations = []
@@ -237,7 +237,7 @@ def vote(voters_number = 10):
                 confirmations.append(0)
         resp.is_public_vote_ok = True
         print("confirmations: ", confirmations)
-    
+
         final_votes = []
         for i in range(voters_number):
             if (confirmations[i] != 0):
@@ -248,3 +248,70 @@ def vote(voters_number = 10):
             resp.err = err
 
     return resp
+
+
+def vote_without_comments(voters_number=10):
+  voters = []
+  voters_keys = []
+  mask_factors = []
+
+  for i in range(voters_number):
+    voters.append(i + 1)
+    voters_keys.append(generate_keys(9))
+    mask_factors.append(get_mask_factor())
+
+  admin_keys = generate_keys(9)  #
+  admin = Admin(admin_keys[0], admin_keys[1])  #
+
+  counter = Counter(admin_keys[0])
+
+  voters_obj = []
+  for i in range(voters_number):
+    voters_obj.append(Voter(voters[i], voters_keys[i][0], voters_keys[i][1], mask_factors[i], admin_keys[0]))
+
+  resp = Response
+  try:
+    auth = []
+    for i in range(voters_number):
+      auth.append(voters_obj[i].authorization())
+
+    sign = []
+    for i in range(voters_number):
+      sign.append(admin.sign(auth[i], voters[i]))
+    resp.is_admin_sign_ok = True
+    print("Auth voters: ", admin.auth_voters)
+
+    signed_keys = []
+    for i in range(voters_number):
+      signed_keys.append(voters_obj[i].get_signed_key(sign[i]))
+    resp.is_voter_key_signed = True
+
+    for i in range(voters_number):
+      counter.registrate(signed_keys[i])
+    resp.is_registration_ok = True
+
+    secret_keys = []
+    for i in range(voters_number):
+      secret_keys.append(counter.generate_secret_key())
+
+    votes = []
+    for i in range(voters_number):
+      votes.append(voters_obj[i].make_vote(i + 1, secret_keys[i]))
+
+    confirmations = []
+    for i in range(voters_number):
+      if (counter.public_vote(votes[i]) == 1):
+        confirmations.append(voters_obj[i].confirm_vote())
+      else:
+        confirmations.append(0)
+    resp.is_public_vote_ok = True
+
+    final_votes = []
+    for i in range(voters_number):
+      if (confirmations[i] != 0):
+        final_votes.append(counter.public_final_vote(confirmations[i], secret_keys[i]))
+    resp.is_final_vote_ok = True
+  except BaseException as err:
+    resp.err = err
+
+  return resp
